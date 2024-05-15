@@ -1,11 +1,13 @@
 import icons from 'url:../../img/icons.svg';
 export default class View {
   _data;
-  render(data) {
-    if (!data || (Array.isArray(data) && data.length === 0))
-      return this.renderError();
+  render(data, render = true) {
+    // if (!data || (Array.isArray(data) && data.length === 0))
+    //   return this.renderError();
     this._data = data;
     const markup = this._generateMarkup();
+    //
+    if (!render) return markup;
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
@@ -24,7 +26,34 @@ export default class View {
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
+  // Small Excercise to update UI dynamically but not using the method anymore.
+  update(data) {
+    // if (!data || (Array.isArray(data) && data.length === 0))
+    //   return this.renderError();
+    this._data = data;
+    const newMarkup = this._generateMarkup();
 
+    const newDOM = document.createRange().createContextualFragment(newMarkup);
+    const newElements = Array.from(newDOM.querySelectorAll('*'));
+    const curElement = Array.from(this._parentElement.querySelectorAll('*'));
+
+    newElements.forEach((newEl, i) => {
+      const curEl = curElement[i];
+      // Updates changed TEXT
+      if (
+        !newEl.isEqualNode(curEl) &&
+        newEl.firstChild?.nodeValue.trim() !== ''
+      ) {
+        //console.log('🌼', newEl.firstChild.nodeValue.trim());
+        curEl.textContent = newEl.textContent;
+      }
+      // Updates changed ATTRIBUTES
+      if (!newEl.isEqualNode(curEl))
+        Array.from(newEl.attributes).forEach(attr =>
+          curEl.setAttribute(attr.name, attr.value)
+        );
+    });
+  }
   //
   renderError(message = this._errorMessage) {
     const markup = `
